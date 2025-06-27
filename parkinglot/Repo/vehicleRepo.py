@@ -10,6 +10,6 @@ class VehicleRepo:
         return self.vehicles.get(vehicle_number)
 
     def save(self, vehicle: Vehicle):
-        if vehicle.vehicle_number in self.vehicles:
+        if vehicle.id in self.vehicles:
             raise ValueError("Vehicle already exists")
-        self.vehicles[vehicle.vehicle_number] = vehicle
+        self.vehicles[vehicle.id] = vehicle

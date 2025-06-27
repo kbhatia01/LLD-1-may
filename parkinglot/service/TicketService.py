@@ -1,7 +1,9 @@
 import datetime
 
+from parkinglot.Repo import ParkingLotRepo
 from parkinglot.Repo.GateRepo import GateRepo
 from parkinglot.Repo.Slots import slotRepo
+from parkinglot.Repo.ticketRepo import TicketRepo
 from parkinglot.Repo.vehicleRepo import VehicleRepo
 from parkinglot.dtos.TicketIssueRequest import TicketIssueRequest
 from parkinglot.models.models import Ticket, Vehicle, SlotStatus
@@ -11,10 +13,13 @@ from parkinglot.service.slot_strgy.SlotFactory import SlotFactory
 class TicketService:
 
     def __init__(self, gateRepo: GateRepo, vehicleRepo: VehicleRepo,
-                 slot_repo: slotRepo):
+                 slot_repo: slotRepo, parkingLotRepo: ParkingLotRepo,
+                 ticketRepo: TicketRepo):
         self.vehicleRepo = vehicleRepo
         self.gate_repo = gateRepo
         self.slot_repo = slot_repo
+        self.parkingLotRepo = parkingLotRepo
+        self.ticketRepo = ticketRepo
 
 
     def issue_ticket(self, ticketIssueRequest: TicketIssueRequest):
@@ -42,15 +47,16 @@ class TicketService:
         slot = strgy.get_slots(ticketIssueRequest.vehicleType, gate.parking_lot)
 
         if slot is None:
-            raise ValueError("Invalid slot assignment")
-
+            raise ValueError("No slot available for the vehicle type")
         #  assign a slot
-
         ticket.parking_slot = slot
         slot.parking_slot_status =SlotStatus.FILLED
         # block slot
         self.slot_repo.update_slot(slot.id, slot)
         # update the total capacity of the parking lot
+        self.parkingLotRepo.decrease_parking_lot_capacity(parkingLot=gate.parking_lot)
         # return the ticket
+        self.ticketRepo.save_ticket(ticket)
+        return ticket
 
     # add a method to check availability of slots
