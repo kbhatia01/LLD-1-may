@@ -98,7 +98,7 @@ class Gate(BaseModel):
         super().__init__(id)
         self.gate_number = gate_number
         self.gate_type = gate_type
-        self.parking_lot = parking_lot
+        self.parking_lot: ParkingLot = parking_lot
         self.gate_status = gate_status
 
 
